@@ -4,7 +4,7 @@ Ei guide follow korle `https://scaleupweb.xyz` tomar Ubuntu server theke cholbe.
 Router e kono port khulte hobe na, home IP lukano thakbe, SSL free.
 
 ```
-Visitor ──► Cloudflare (SSL, CDN) ──► Tunnel ──► server: "tunnel" container ──► "web" container (Next.js :3000)
+Visitor ──► Cloudflare (SSL, CDN) ──► "home-server" tunnel (cloudflared container) ──► scaleup-web container (:3000)
 ```
 
 ---
@@ -20,19 +20,21 @@ Visitor ──► Cloudflare (SSL, CDN) ──► Tunnel ──► server: "tunn
 > Email (hello@scaleupweb.xyz) Hostinger e thakle: Cloudflare DNS e Hostinger er MX/TXT record
 > gulo thik ache kina check koro (Cloudflare usually auto-import kore).
 
-## 2. Cloudflare Tunnel banao
+## 2. Existing tunnel ("home-server") e route jog koro
 
-1. Cloudflare dashboard → **Zero Trust** → **Networks → Tunnels** → **Create a tunnel** → **Cloudflared**.
-2. Nam dao: `scaleup-home-server` → Save.
-3. "Install connector" page e Docker option e je command dekhay, tar **token** (`eyJ...` lomba string) copy koro.
-   Eta-i `CLOUDFLARE_TUNNEL_TOKEN`. (Command ta chalate hobe na, compose file e already ache.)
-4. **Public Hostnames** tab → **Add a public hostname**:
-   | Subdomain | Domain | Type | URL |
+Server e already ekta cloudflared tunnel chole (Morpheus er jonno). ScaleUp oi tunnel-i use korbe.
+
+1. **Tunnel er Docker network er nam jano:** Portainer → **Containers** → cloudflared container ta kholo →
+   niche **Connected networks** e network er nam (jemon `morpheus_default`). Eta-i `TUNNEL_NETWORK`.
+2. Cloudflare → **Networks → Tunnels → home-server → Routes → Add route → Published application**:
+   | Subdomain | Domain | Path | Service URL |
    |---|---|---|---|
-   | *(khali)* | scaleupweb.xyz | HTTP | `web:3000` |
-   | `www` | scaleupweb.xyz | HTTP | `web:3000` |
+   | *(khali)* | scaleupweb.xyz | *(khali)* | `http://scaleup-web:3000` |
+   | `www` | scaleupweb.xyz | *(khali)* | `http://scaleup-web:3000` |
 
-   (`web` holo docker-compose er service er nam. `www` theke main domain e redirect site nijei kore.)
+   (`scaleup-web` holo container er nam. `www` theke main domain e redirect site nijei kore.)
+3. "record already exists" error dile: Cloudflare → **DNS → Records** e `scaleupweb.xyz` ar `www` er purono
+   A / CNAME record (Hostinger er IP) delete koro, tarpor abar route add koro. MX/TXT (email) record chuo na.
 
 ## 3. Code server e nao
 
@@ -54,7 +56,7 @@ Portainer stack er **Environment variables** e (ba Option B te project folder e 
 
 | Name | Value |
 |---|---|
-| `CLOUDFLARE_TUNNEL_TOKEN` | Step 2 er token |
+| `TUNNEL_NETWORK` | Step 2 er network nam (jemon `morpheus_default`) |
 | `NEXT_PUBLIC_SITE_URL` | `https://scaleupweb.xyz` |
 | `GOOGLE_SITE_VERIFICATION` | Step 6 er code (pore dileo hobe) |
 | `BING_SITE_VERIFICATION` | Step 6 er code (pore dileo hobe) |
@@ -65,8 +67,8 @@ Portainer stack er **Environment variables** e (ba Option B te project folder e 
 
 - Server e: `curl -I http://localhost:3100` → `200 OK` asha uchit.
 - Browser e: <https://scaleupweb.xyz> khulo.
-- Portainer → Containers: `scaleup-web` (healthy) ar `scaleup-tunnel` (running).
-- Cloudflare → Tunnels: tunnel er status **Healthy**.
+- Portainer → Containers: `scaleup-web` (healthy), ar Connected networks e `TUNNEL_NETWORK` er nam ache.
+- 502 / "Bad gateway" dekhale: `scaleup-web` ar cloudflared container eki network e ache kina check koro.
 
 **Update korte:** GitHub e push koro → Portainer stack e **Pull and redeploy** (Re-build image on) chapo.
 Option B te: notun code copy kore `docker compose up -d --build`.

@@ -1,6 +1,8 @@
-# ScaleUp Web on the home server: the site + a Cloudflare Tunnel.
-# Portainer: Stacks → Add stack → Repository (or Upload), then set the
-# environment variables listed in DEPLOY.md. CLI: `docker compose up -d --build`.
+# ScaleUp Web on the home server.
+# Public traffic comes in through the existing Cloudflare tunnel ("home-server"):
+# its cloudflared container reaches this site at http://scaleup-web:3000 over a
+# shared Docker network — set TUNNEL_NETWORK to that network's name (see DEPLOY.md).
+# Portainer: Stacks → Add stack → Repository. CLI: `docker compose up -d --build`.
 
 services:
   web:
@@ -15,17 +17,14 @@ services:
     restart: unless-stopped
     environment:
       CONTACT_EMAIL: ${CONTACT_EMAIL:-hello@scaleupweb.xyz}
+    networks:
+      - default
+      - tunnel
     # Only for testing from the server itself: http://localhost:3100
-    # (the public traffic comes in through the tunnel, no open ports needed)
     ports:
       - "127.0.0.1:3100:3000"
 
+networks:
   tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: scaleup-tunnel
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Set CLOUDFLARE_TUNNEL_TOKEN (see DEPLOY.md)}
-    depends_on:
-      - web
+    external: true
+    name: ${TUNNEL_NETWORK:?Set TUNNEL_NETWORK to the Docker network of your cloudflared container (see DEPLOY.md)}
