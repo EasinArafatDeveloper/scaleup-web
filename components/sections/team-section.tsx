@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Handshake } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { teamMembers, type TeamMember } from "@/data/team";
-import { nextLeaders } from "@/data/partners";
 import { SplitReveal } from "@/components/motion/split-reveal";
 import { StaggerContainer } from "@/components/motion/reveal";
 
@@ -57,13 +56,6 @@ function PersonCard({
 
 /** /about: everyone behind the studio. Members come from data/team.ts. */
 export function TeamSection() {
-  const partner: TeamMember = {
-    name: nextLeaders.person,
-    role: `Partner · ${nextLeaders.company}`,
-    photo: nextLeaders.personPhoto,
-    linkedin: nextLeaders.personLinkedin
-  };
-
   return (
     <section className="border-t border-line py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
@@ -88,14 +80,6 @@ export function TeamSection() {
           {teamMembers.map((m) => (
             <PersonCard key={m.name} person={m} />
           ))}
-          <PersonCard
-            person={partner}
-            badge={
-              <>
-                <Handshake className="h-3.5 w-3.5" /> Tech partner
-              </>
-            }
-          />
         </StaggerContainer>
       </div>
     </section>
