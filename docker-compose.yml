@@ -1,9 +1,9 @@
-# ScaleUp Web on the home server.
-# Public traffic comes in through the existing Cloudflare tunnel ("home-server"):
-# its cloudflared container reaches this site at http://scaleup-web:3000 over a
-# shared Docker network — set TUNNEL_NETWORK to that network's name (see DEPLOY.md).
-# Portainer: Stacks → Add stack → Repository. CLI: `docker compose up -d --build`.
-
+# ScaleUp Web on the home server (see ~/server/PROJECTS.md)
+# - website on 127.0.0.1:3006 (this PC only); public through Cloudflare Tunnel "home-server"
+#   as http://scaleup-web:3000 (scaleupweb.xyz and www.scaleupweb.xyz)
+# - no database
+# - settings in ./.env (chmod 600, never committed) — see .env.example
+# Update: git pull && docker compose up -d --build
 services:
   web:
     build:
@@ -12,19 +12,24 @@ services:
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://scaleupweb.xyz}
         GOOGLE_SITE_VERIFICATION: ${GOOGLE_SITE_VERIFICATION:-}
         BING_SITE_VERIFICATION: ${BING_SITE_VERIFICATION:-}
-    image: scaleup-web:latest
+    image: scaleup-web
     container_name: scaleup-web
-    restart: unless-stopped
     environment:
+      TZ: Asia/Dhaka
       CONTACT_EMAIL: ${CONTACT_EMAIL:-hello@scaleupweb.xyz}
-    networks:
-      - default
-      - tunnel
-    # Only for testing from the server itself: http://localhost:3100
-    ports:
-      - "127.0.0.1:3100:3000"
+    ports: ["127.0.0.1:3006:3000"]
+    restart: unless-stopped
+    networks: [proxy]
+    mem_limit: 768m
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/robots.txt"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
 
 networks:
-  tunnel:
-    external: true
-    name: ${TUNNEL_NETWORK:?Set TUNNEL_NETWORK to the Docker network of your cloudflared container (see DEPLOY.md)}
+  proxy:
+    external: true  # shared with cloudflared: the tunnel reaches this app as http://scaleup-web:3000
