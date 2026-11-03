@@ -134,7 +134,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle className="hidden sm:flex" />
+          <ThemeToggle />
           <Button href="/free-audit" variant="primary" size="sm" className="hidden sm:inline-flex">
             Free audit <ArrowUpRight className="h-3.5 w-3.5" />
           </Button>
