@@ -1,0 +1,436 @@
+@import "tailwindcss";
+
+/* =========================================================================
+   DESIGN TOKENS — "Midnight Blue"
+   Midnight navy + porcelain, royal-blue brand accent,
+   ice-blue for the serif-italic headline words.
+========================================================================= */
+
+:root {
+  --background: #060a14;
+  --background-alt: #0a0f1c;
+  --foreground: #e8ecf4;
+  --surface: #0e1424;
+  --surface-elevated: #141b2e;
+  --surface-glass: rgba(8, 12, 24, 0.72);
+  --border: rgba(200, 214, 255, 0.09);
+  --border-strong: rgba(200, 214, 255, 0.18);
+  --border-focus: rgba(59, 107, 255, 0.6);
+  --muted: #8b95ab;
+  --muted-dark: #5d6780;
+  --accent: #3b6bff;
+  --accent-hover: #5a83ff;
+  --accent-soft: #afc3ff;
+  --accent-ink: #ffffff;
+  --primary: var(--accent);
+  --primary-hover: var(--accent-hover);
+  --primary-glow: rgba(59, 107, 255, 0.28);
+  --accent-glow: rgba(59, 107, 255, 0.28);
+  --success: #6fd6a8;
+  --warning: #e7c27a;
+  --grain-opacity: 0.06;
+}
+
+html.light {
+  --background: #f4f6fa;
+  --background-alt: #eaeef6;
+  --foreground: #0a1020;
+  --surface: #ffffff;
+  --surface-elevated: #e3e8f2;
+  --surface-glass: rgba(244, 246, 250, 0.8);
+  --border: rgba(10, 16, 32, 0.1);
+  --border-strong: rgba(10, 16, 32, 0.2);
+  --border-focus: rgba(36, 73, 232, 0.6);
+  --muted: #56607a;
+  --muted-dark: #3f4860;
+  --accent: #2449e8;
+  --accent-hover: #1a3bd0;
+  --accent-soft: #2449e8;
+  --accent-ink: #ffffff;
+  --primary-glow: rgba(36, 73, 232, 0.16);
+  --accent-glow: rgba(36, 73, 232, 0.16);
+  --success: #1f8a5b;
+  --warning: #a8761c;
+  --grain-opacity: 0.04;
+}
+
+@theme inline {
+  --color-ink: var(--background);
+  --color-ink-alt: var(--background-alt);
+  --color-fg: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-elevated);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-dark);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter-tight), var(--font-geist-sans), ui-sans-serif, sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* In the base layer so utilities like border-line-strong can override it. */
+@layer base {
+  * {
+    border-color: var(--border);
+    box-sizing: border-box;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Display type: tight, heavy, editorial */
+.font-display {
+  font-family: var(--font-inter-tight), var(--font-geist-sans), sans-serif;
+  letter-spacing: -0.045em;
+}
+
+/* Serif italic accent word inside headlines */
+.serif-accent {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+/* Serif accent words use the softer ice blue so headlines feel refined,
+   while buttons and numbers keep the strong royal blue. */
+.serif-accent.text-accent {
+  color: var(--accent-soft);
+}
+
+/* Inverted panels (bg-fg): keep the blue readable on the opposite background. */
+.bg-fg .serif-accent.text-accent {
+  color: var(--accent);
+}
+
+html.light .bg-fg .text-accent,
+html.light .bg-fg .serif-accent.text-accent {
+  color: #8fa9ff;
+}
+
+/* Film grain overlay */
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  width: 200%;
+  height: 200%;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 8s steps(10) infinite;
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -10%); }
+  30% { transform: translate(3%, -15%); }
+  50% { transform: translate(12%, 9%); }
+  70% { transform: translate(9%, 4%); }
+  90% { transform: translate(-1%, 7%); }
+}
+
+/* Hairline grid used behind hero + CTA */
+.bg-hairline-grid {
+  background-size: 88px 88px;
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 100%);
+}
+
+/* =========================================================================
+   HERO — "planet rise" (beams, aurora, starfield, glowing horizon)
+========================================================================= */
+
+/* Headline fades from full white at the top to slightly dimmer below. */
+.hero-grad {
+  background: linear-gradient(180deg, var(--foreground) 30%, color-mix(in oklab, var(--foreground) 62%, transparent) 110%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Light rays fanning down from the top centre */
+.hero-beams {
+  position: absolute;
+  left: 50%;
+  top: -10%;
+  width: 160%;
+  height: 110%;
+  transform: translateX(-50%);
+  background: conic-gradient(
+    from 180deg at 50% 0%,
+    transparent 150deg,
+    color-mix(in oklab, var(--accent) 34%, transparent) 163deg,
+    transparent 170deg,
+    color-mix(in oklab, var(--accent-soft) 26%, transparent) 177deg,
+    transparent 182deg,
+    color-mix(in oklab, var(--accent) 30%, transparent) 190deg,
+    transparent 197deg,
+    color-mix(in oklab, var(--accent-soft) 20%, transparent) 204deg,
+    transparent 212deg
+  );
+  -webkit-mask-image: radial-gradient(ellipse 55% 75% at 50% 0%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse 55% 75% at 50% 0%, #000 20%, transparent 75%);
+  filter: blur(8px);
+  animation: hero-beams 9s ease-in-out infinite alternate;
+}
+
+@keyframes hero-beams {
+  0% { opacity: 0.55; transform: translateX(-50%) rotate(-2deg); }
+  100% { opacity: 1; transform: translateX(-50%) rotate(2deg); }
+}
+
+/* Two slow-drifting aurora clouds */
+.hero-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(110px);
+  opacity: 0.7;
+}
+
+.hero-aurora-a {
+  left: 18%;
+  top: 22%;
+  height: 420px;
+  width: 520px;
+  background: radial-gradient(circle, var(--accent), transparent 65%);
+  animation: aurora-a 16s ease-in-out infinite alternate;
+}
+
+.hero-aurora-b {
+  right: 14%;
+  top: 34%;
+  height: 380px;
+  width: 480px;
+  background: radial-gradient(circle, #6d5dfc, transparent 65%);
+  opacity: 0.35;
+  animation: aurora-b 20s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-a {
+  to { transform: translate(120px, 60px) scale(1.15); }
+}
+
+@keyframes aurora-b {
+  to { transform: translate(-140px, -40px) scale(0.9); }
+}
+
+/* Soft light that follows the cursor */
+.hero-cursor-light {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(500px circle at var(--mx, 50%) var(--my, -500px), color-mix(in oklab, var(--accent) 12%, transparent), transparent 60%);
+}
+
+/* Atmosphere glow behind the rising Earth */
+.hero-earth-atmosphere {
+  position: absolute;
+  inset: 6%;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 50% 50%, transparent 58%, color-mix(in oklab, var(--accent) 30%, transparent) 66%, transparent 72%);
+  filter: blur(30px);
+  animation: atmosphere 7s ease-in-out infinite alternate;
+}
+
+@keyframes atmosphere {
+  from { opacity: 0.6; transform: scale(0.99); }
+  to { opacity: 1; transform: scale(1.01); }
+}
+
+/* "Dhaka HQ" tag pinned to the globe marker via CSS anchor positioning.
+   Hidden in browsers without anchor support. */
+.globe-label {
+  display: none;
+}
+
+@supports (position-anchor: --a) {
+  .globe-label {
+    display: inline-flex;
+    position: absolute;
+    position-anchor: --cobe-dhaka;
+    bottom: anchor(top);
+    left: anchor(center);
+    translate: -50% -8px;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-glass);
+    backdrop-filter: blur(10px);
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--foreground);
+    white-space: nowrap;
+    opacity: var(--cobe-visible-dhaka, 0);
+    filter: blur(calc((1 - var(--cobe-visible-dhaka, 0)) * 6px));
+    transition: opacity 0.4s, filter 0.4s;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-aurora-a { left: -10%; width: 360px; height: 320px; }
+  .hero-aurora-b { right: -20%; width: 320px; height: 300px; }
+}
+
+/* Primary CTA gets a soft halo in the hero */
+.hero-cta {
+  box-shadow: 0 10px 40px -10px var(--accent), 0 0 0 1px color-mix(in oklab, var(--accent-soft) 40%, transparent) inset;
+}
+
+/* Light mode: no stars, gentler light */
+html.light .starfield { display: none; }
+html.light .hero-aurora { opacity: 0.22; }
+html.light .hero-beams { opacity: 0.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-beams,
+  .hero-aurora,
+  .hero-earth-atmosphere {
+    animation: none;
+  }
+}
+
+/* Legacy utilities kept so inner pages still render */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+}
+
+.bg-dots-pattern {
+  background-size: 20px 20px;
+  background-image: radial-gradient(circle, var(--border-strong) 1px, transparent 1px);
+}
+
+.glass-panel {
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+.glass-nav {
+  background: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.text-gradient {
+  color: var(--foreground);
+}
+
+.text-gradient-primary {
+  color: var(--accent);
+}
+
+.card-glow {
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-glow:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.ambient-glow-indigo,
+.ambient-glow-cyan {
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+}
+
+/* Outline text for marquees */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--border-strong);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Marquee */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee-slow {
+  display: flex;
+  width: max-content;
+  animation: marquee 70s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain,
+  .animate-marquee,
+  .animate-marquee-slow,
+  .animate-spin-slow {
+    animation: none;
+  }
+}

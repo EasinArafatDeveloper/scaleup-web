@@ -1,0 +1,31 @@
+# ScaleUp Web on the home server: the site + a Cloudflare Tunnel.
+# Portainer: Stacks → Add stack → Repository (or Upload), then set the
+# environment variables listed in DEPLOY.md. CLI: `docker compose up -d --build`.
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://scaleupweb.xyz}
+        GOOGLE_SITE_VERIFICATION: ${GOOGLE_SITE_VERIFICATION:-}
+        BING_SITE_VERIFICATION: ${BING_SITE_VERIFICATION:-}
+    image: scaleup-web:latest
+    container_name: scaleup-web
+    restart: unless-stopped
+    environment:
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-hello@scaleupweb.xyz}
+    # Only for testing from the server itself: http://localhost:3100
+    # (the public traffic comes in through the tunnel, no open ports needed)
+    ports:
+      - "127.0.0.1:3100:3000"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: scaleup-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Set CLOUDFLARE_TUNNEL_TOKEN (see DEPLOY.md)}
+    depends_on:
+      - web
