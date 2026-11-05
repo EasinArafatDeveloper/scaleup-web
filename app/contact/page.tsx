@@ -7,6 +7,7 @@ import { siteConfig, getWhatsAppUrl } from "@/data/site";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/page/page-hero";
 import { Field, ChoicePills, controlClass } from "@/components/ui/field";
+import { submitLead } from "@/app/actions/submit-lead";
 
 const services = [
   "Landing Page",
@@ -33,15 +34,27 @@ export default function ContactPage() {
   });
   const [submitted, setSubmitted] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const honeypot = React.useRef<HTMLInputElement>(null);
 
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 700));
+    const res = await submitLead({
+      form: "contact",
+      name: form.name,
+      phone: form.phone,
+      email: form.email,
+      service: form.service,
+      details: { budget: form.budget, message: form.message },
+      company: honeypot.current?.value ?? ""
+    }).catch(() => ({ ok: false as const, error: "We couldn't send your message right now. Please message us on WhatsApp." }));
     setIsSubmitting(false);
-    setSubmitted(true);
+    if (res.ok) setSubmitted(true);
+    else setError(res.error);
   };
 
   const channels = [
@@ -154,6 +167,18 @@ export default function ContactPage() {
                       className={`${controlClass} resize-none`}
                     />
                   </Field>
+
+                  {/* Honeypot — hidden from people, bots fill it in */}
+                  <input ref={honeypot} name="company" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
+
+                  {error && (
+                    <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-fg">
+                      {error}{" "}
+                      <a href={getWhatsAppUrl(`Hi ScaleUp Web! I'm ${form.name}. ${form.message}`)} target="_blank" rel="noopener noreferrer" className="font-medium text-accent underline">
+                        Open WhatsApp
+                      </a>
+                    </p>
+                  )}
 
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-xs text-muted-2">We reply with a fixed-scope estimate. No spam, ever.</p>

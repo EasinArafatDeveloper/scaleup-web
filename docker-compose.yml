@@ -14,6 +14,7 @@ services:
         BING_SITE_VERIFICATION: ${BING_SITE_VERIFICATION:-}
     image: scaleup-web
     container_name: scaleup-web
+    env_file: ./.env   # runtime settings incl. ADMIN_INBOUND_URL + INBOUND_SECRET (website form leads)
     environment:
       TZ: Asia/Dhaka
       CONTACT_EMAIL: ${CONTACT_EMAIL:-hello@scaleupweb.xyz}

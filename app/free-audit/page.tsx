@@ -8,6 +8,7 @@ import { getWhatsAppUrl } from "@/data/site";
 import { industriesData } from "@/data/industries";
 import { PageHero } from "@/components/page/page-hero";
 import { Field, ChoicePills, controlClass } from "@/components/ui/field";
+import { submitLead } from "@/app/actions/submit-lead";
 
 const problems = [
   { value: "automate-replies", label: "Slow Messenger replies" },
@@ -47,6 +48,7 @@ export default function FreeAuditPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [submitted, setSubmitted] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const honeypot = React.useRef<HTMLInputElement>(null);
 
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -66,9 +68,23 @@ export default function FreeAuditPage() {
 
     setIsSubmitting(true);
     try {
-      // In production this posts to a Server Action / n8n webhook.
-      await new Promise((r) => setTimeout(r, 800));
-      setSubmitted(true);
+      const label = (list: { value: string; label: string }[], v: string) => list.find((o) => o.value === v)?.label ?? v;
+      const res = await submitLead({
+        form: "audit",
+        name: form.name,
+        phone: form.whatsapp,
+        business: form.businessName,
+        website: form.websiteUrl,
+        facebook: form.facebookUrl,
+        details: {
+          industry: industriesData.find((i) => i.slug === form.industry)?.name ?? form.industry,
+          mainProblem: label(problems, form.mainProblem),
+          monthlyAdSpend: label(spends, form.monthlyAdSpend)
+        },
+        company: honeypot.current?.value ?? ""
+      });
+      if (res.ok) setSubmitted(true);
+      else setError(res.error);
     } catch {
       setError("Submission failed. Please message us directly on WhatsApp.");
     } finally {
@@ -113,6 +129,8 @@ export default function FreeAuditPage() {
             <AnimatePresence mode="wait">
               {!submitted ? (
                 <motion.form key="form" onSubmit={handleSubmit} exit={{ opacity: 0, y: -10 }} className="space-y-12" noValidate>
+                  {/* Honeypot — hidden from people, bots fill it in */}
+                  <input ref={honeypot} name="company" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
                   <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
                     <Field index="01" label="Your name *">
                       <input value={form.name} onChange={(e) => set("name")(e.target.value)} placeholder="Tanvir Hasan" className={controlClass} />
